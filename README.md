@@ -10,9 +10,9 @@ The thylacine was declared extinct in 1936 because nobody kept a copy.
 
 ## Why
 
-Automating a chore. The challenge of backing up data goes well beyond "copy the bytes."
-There is atomicity, interrupted runs, renames, symlinks, permissions, and knowing what changed
-without reading everything. `thylacine` is a learning project to work through those problems directly.
+Automating a chore and a backing up data has some interesting learning challenges to work thru like atomicity,
+interrupted runs, renames, symlinks, permissions, and knowing what changed
+without reading everything.
 
 ## Design
 
