@@ -1,5 +1,11 @@
 use core::fmt;
-use std::{ffi::{OsStr, OsString}, path::{Path, PathBuf}};
+use std::{
+    ffi::{OsStr, OsString},
+    fmt::DebugStruct,
+    path::{Path, PathBuf},
+};
+
+use rusqlite::types::FromSqlError::Other;
 
 pub const USAGE: &str = "\
 thylacine — snapshot-based backup
@@ -12,7 +18,7 @@ USAGE:
  
 Use -- to end flag parsing if a source path begins with a dash.
 ";
- 
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum Command {
     Backup {
@@ -30,47 +36,68 @@ pub enum Command {
     Help,
 }
 
-
-
-// Backup 
+// Backup
 // parses the backup arguments
 fn parse_backup<I>(mut args: I) -> Result<Command, CliError>
 where
-    I: Iterator<Item =  OsString>, 
-    {
-        let mut dest: Option<PathBuf> = None;
-        let mut sources: Vec<PathBuf> = Vec::new();
-        let mut flags_done = false;
+    I: Iterator<Item = OsString>,
+{
+    let mut dest: Option<PathBuf> = None;
+    let mut sources: Vec<PathBuf> = Vec::new();
+    let mut flags_done = false;
 
-        while let Some(arg) = args.next(){
-            if !flags_done {
-                match arg.to_str() {
-                    Some("--") => {
-                        flags_done = true;
-                        continue
-                    }
-                    Some("--dest") => {
-                        dest = Some(value_for("--dest", &mut args)?.into());
-                        continue
-                    }
-                    Some(other) if is_flag(other) => {
-                        return Err(CliError::UnknownFlag(other.to_string()))
-                    }
-                    _ => {}
+    while let Some(arg) = args.next() {
+        if !flags_done {
+            match arg.to_str() {
+                Some("--") => {
+                    flags_done = true;
+                    continue;
                 }
+                Some("--dest") => {
+                    dest = Some(value_for("--dest", &mut args)?.into());
+                    continue;
+                }
+                Some(other) if is_flag(other) => {
+                    return Err(CliError::UnknownFlag(other.to_string()));
+                }
+                _ => {}
             }
-            sources.push(PathBuf::from(arg));
         }
-
-        let dest = dest.ok_or(CliError::MissingFlag("--dest"))?;
-        if sources.is_empty() {
-            return Err(CliError::NoSources);
-        }
-
-        Ok(Command::Backup { dest, sources })
+        sources.push(PathBuf::from(arg));
     }
 
-    
+    let dest = dest.ok_or(CliError::MissingFlag("--dest"))?;
+    if sources.is_empty() {
+        return Err(CliError::NoSources);
+    }
+
+    Ok(Command::Backup { dest, sources })
+}
+
+fn parse_verify<I>(mut args: I) -> Result<Command, CliError>
+where
+    I: Iterator<Item = OsString>,
+{
+    let mut dest: Option<PathBuf> = None;
+
+    while let Some(arg) = args.next() {
+        match arg.to_str() {
+            Some("--dest") => dest = Some(value_for("--dest", &mut args)?.into()),
+            Some(other) if is_flag(other) => {
+                return Err(CliError::UnknownFlag(other.to_string()));
+            }
+            _ => {
+                return Err(CliError::UnexpectedArgument(
+                    arg.to_string_lossy().into_owned(),
+                ));
+            }
+        }
+    }
+
+    Ok(Command::Verify {
+        dest: dest.ok_or(CliError::MissingFlag("--dest"))?,
+    })
+}
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum CliError {
@@ -99,8 +126,7 @@ impl fmt::Display for CliError {
 
 impl std::error::Error for CliError {}
 
-
-// gets the value following a flag.   
+// gets the value following a flag.
 // errors if the value looks like a flag
 fn value_for<I>(flag: &'static str, args: &mut I) -> Result<OsString, CliError>
 where
