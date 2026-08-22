@@ -39,8 +39,8 @@ ordinary directories under their real names, so anyone in the house can plug in 
 what they need. No software, no database, no explanation.
 
 **Identity is file hash, not path.** Every file is identified by the SHA-256 of its bytes. Before copying, thylacine checks whether 
-those bytes already exist anywhere in the archive — any folder, any filename. This is what makes reorganising 
-the archive by hand safe, and what catches the same photo arriving from two machines under two names.
+those bytes already exist anywhere in the archive — any folder, any filename. As such, reorganising 
+the archive by hand safe (since this will likely be necessary backing up multiple machines), and what catches the same photo arriving from two machines under two names.
 
 **The database is a cache, not the source of truth.** It holds two tables, both rebuildable by walking and re-hashing:
 
