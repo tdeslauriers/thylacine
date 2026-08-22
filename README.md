@@ -8,6 +8,15 @@ A file backup tool written in Rust.
 
 The thylacine was declared extinct in 1936 because nobody kept a copy.
 
+## What it does
+
+Gathers files from several machines into one organised archive on a portable drive or server, storing each distinct file exactly once, eg:
+
+```
+thylacine init   --dest /mnt/backup
+thylacine backup --dest /mnt/backup ~/Pictures ~/Documents
+```
+
 ## Why
 
 Automating a chore and a backing up data has some interesting learning challenges to work thru like atomicity,
@@ -25,11 +34,11 @@ thylacine help
 
 ## Design
 
-**The archive must be readable without this tool.** This is the constraint everything else bends around. Files land in 
+**The archive must be readable without this tool.** This is the constraint everything else was built around. Files land in 
 ordinary directories under their real names, so anyone in the house can plug in the drive, open a folder, and drag out 
 what they need. No software, no database, no explanation.
 
-**Identity is content, not path.** Every file is identified by the SHA-256 of its bytes. Before copying anything, thylacine asks whether 
+**Identity is file hash, not path.** Every file is identified by the SHA-256 of its bytes. Before copying, thylacine checks whether 
 those bytes already exist anywhere in the archive — any folder, any filename. This is what makes reorganising 
 the archive by hand safe, and what catches the same photo arriving from two machines under two names.
 
@@ -38,7 +47,7 @@ the archive by hand safe, and what catches the same photo arriving from two mach
 * sources — what each source file looked like last run, so unchanged files are skipped without being opened
 * archived — what is currently in the archive, so duplicate content is recognised
 
-If the database is deleted, the next run will be slow slow, because everything will be re-hashed, but nothing will be lost.
+If the database is deleted, the next run will be slow slow because everything will be re-hashed, but nothing will be lost.
 
 **Nothing is ever overwritten.** An edited document produces a new hash, so it is archived alongside the old version rather than replacing it. 
 Two different files with the same name are disambiguated with a prefix of the content hash — IMG_1234-a19d4c7e.jpg
