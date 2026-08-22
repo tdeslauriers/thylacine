@@ -1,6 +1,6 @@
 # thylacine
 
-A snapshot-based backup tool written in Rust.
+A file backup tool written in Rust.
 
 - **Status: early development. Do not use this for data you care about.**
 
