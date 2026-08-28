@@ -210,11 +210,11 @@ impl Archive {
         }
     }
 
-    /// Every file currently in the archive, as archive-relative paths.
+    /// Retrieves the relative path of every file currently in the archive directory.
     ///
-    /// This is how an archive assembled by hand — or reorganised by hand — is
-    /// brought back into the index.
-    pub fn entries(&self) -> impl Iterator<Item = Result<PathBuf, crate::scan::ScanError>> + '_ {
+    /// This is how an archive which has been prepopulated with files, or has had those files reorganized, 
+    /// is indexed. 
+    pub fn get_archived_filepaths(&self) -> impl Iterator<Item = Result<PathBuf, crate::scan::ScanError>> + '_ {
         let root = self.root.clone();
         crate::scan::walk(&self.root).filter_map(move |result| match result {
             Ok(entry) => {
@@ -230,7 +230,7 @@ impl Archive {
 
     /// True if the archive holds at least one file, ignoring its own config.
     pub fn has_contents(&self) -> bool {
-        self.entries().next().is_some()
+        self.get_archived_filepaths().next().is_some()
     }
 
     /// Clean up temp files left behind by an interrupted run.
@@ -658,7 +658,7 @@ mod tests {
         let hash = write(&path, b"bytes");
         archive.store(&path, &src, &hash).unwrap();
 
-        let found: Vec<PathBuf> = archive.entries().filter_map(Result::ok).collect();
+        let found: Vec<PathBuf> = archive.get_archived_filepaths().filter_map(Result::ok).collect();
         assert_eq!(found, vec![PathBuf::from("Pictures/2023/a.jpg")]);
     }
 

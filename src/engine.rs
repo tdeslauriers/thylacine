@@ -146,7 +146,7 @@ impl Engine {
         self.cache.clear_archived()?;
 
         let mut count = 0;
-        let entries: Vec<PathBuf> = self.archive.entries().filter_map(Result::ok).collect();
+        let entries: Vec<PathBuf> = self.archive.get_archived_filepaths().filter_map(Result::ok).collect();
 
         for relative in entries {
             let absolute = self.archive.root().join(&relative);
